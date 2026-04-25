@@ -47,18 +47,56 @@ async function loadProducts() {
 }
 
 function normalizeProduct(product) {
+  // --- MULTIPLE IMAGES ---
+  const imagesRaw = String(product.images || "").split(",");
+
+  const images = imagesRaw
+    .map(img => img.trim())
+    .filter(img => img.length > 0);
+
+  const mainImage = images.length ? images[0] : "";
+
+  // --- PRICES ---
+  const shopeePrice = Number(product.shopeePrice || 0);
+  const lazadaPrice = Number(product.lazadaPrice || 0);
+  const amazonPrice = Number(product.amazonPrice || 0);
+
+  const validPrices = [shopeePrice, lazadaPrice, amazonPrice]
+    .filter(price => price > 0);
+
+  const averagePrice = validPrices.length
+    ? validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length
+    : 0;
+
   return {
     id: Number(product.id || Date.now() + Math.random()),
     name: String(product.name || "Untitled Product"),
     category: String(product.category || "Others"),
     subcategory: String(product.subcategory || "General"),
-    price: Number(product.price || 0),
-    shop: String(product.shop || "Shop"),
+
+    // --- IMAGES ---
+    images,
+    mainImage,
+
+    // --- PRICES + LINKS ---
+    shopeePrice,
+    shopeeLink: String(product.shopeeLink || ""),
+
+    lazadaPrice,
+    lazadaLink: String(product.lazadaLink || ""),
+
+    amazonPrice,
+    amazonLink: String(product.amazonLink || ""),
+
+    averagePrice,
+
+    // --- OTHER INFO ---
     stock: String(product.stock || "In Stock"),
-    image: String(product.image || ""),
     description: String(product.description || ""),
-    link: String(product.link || product.affiliateLink || "#"),
-    featured: String(product.featured).toLowerCase() === "true" || product.featured === true
+
+    featured:
+      String(product.featured).toLowerCase() === "true" ||
+      product.featured === true
   };
 }
 
@@ -118,9 +156,9 @@ function applyFilters() {
   });
 
   if (sort === "low-high") {
-    products.sort((a, b) => a.price - b.price);
+    products.sort((a, b) => a.averagePrice - b.averagePrice);
   } else if (sort === "high-low") {
-    products.sort((a, b) => b.price - a.price);
+    products.sort((a, b) => b.averagePrice - a.averagePrice);
   } else if (sort === "name") {
     products.sort((a, b) => a.name.localeCompare(b.name));
   } else {
@@ -165,19 +203,33 @@ function renderProducts() {
           ${escapeHtml(product.category)} <span>›</span> ${escapeHtml(product.subcategory)}
         </div>
 
-        <div class="price">₱${formatPrice(product.price)}</div>
+        <div class="price">Avg. ₱${formatPrice(product.averagePrice)}</div>
 
         <div class="meta">
-          <span>${escapeHtml(product.shop)}</span>
-          <span class="divider">|</span>
           <span class="stock ${product.stock.toLowerCase().includes("limited") ? "limited" : ""}">
             ${escapeHtml(product.stock)}
           </span>
         </div>
 
-        <a class="product-btn" href="${escapeAttribute(product.link)}" target="_blank" rel="nofollow sponsored noopener">
-          View Product
-        </a>
+        <div class="store-buttons">
+          ${product.shopeeLink ? `
+            <a class="store-btn shopee" href="${escapeAttribute(product.shopeeLink)}" target="_blank" rel="nofollow sponsored noopener">
+              Shopee • ₱${formatPrice(product.shopeePrice)}
+            </a>
+          ` : ""}
+
+          ${product.lazadaLink ? `
+            <a class="store-btn lazada" href="${escapeAttribute(product.lazadaLink)}" target="_blank" rel="nofollow sponsored noopener">
+              Lazada • ₱${formatPrice(product.lazadaPrice)}
+            </a>
+          ` : ""}
+
+          ${product.amazonLink ? `
+            <a class="store-btn amazon" href="${escapeAttribute(product.amazonLink)}" target="_blank" rel="nofollow sponsored noopener">
+              Amazon • ₱${formatPrice(product.amazonPrice)}
+            </a>
+          ` : ""}
+        </div>
       </div>
     </article>
   `).join("");

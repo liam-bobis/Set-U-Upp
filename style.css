@@ -547,3 +547,38 @@ main {
     flex-direction: column;
   }
 }
+
+/* Store Affiliate Links Button */
+.store-buttons {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.store-btn {
+  min-height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.84rem;
+}
+
+.store-btn.shopee {
+  background: #fff1ec;
+  color: #ee4d2d;
+}
+
+.store-btn.lazada {
+  background: #eef2ff;
+  color: #1a3cff;
+}
+
+.store-btn.amazon {
+  background: #fff7e6;
+  color: #b45309;
+}
+
+.store-btn:hover {
+  filter: brightness(0.96);
+}
